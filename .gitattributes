@@ -1,0 +1,2 @@
+part_01/cool_video_01.mp4 filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
