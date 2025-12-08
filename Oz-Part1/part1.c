@@ -30,6 +30,7 @@ int main(int argc,char *argv[] )
     if(argc<3 ){
         return 1;
         //implement error catch of less than 2 files input
+        printf("you have %d",argc);
     }
     int fd1=open(argv[1],O_RDONLY);
     int fd2=open(argv[2],O_RDONLY);
