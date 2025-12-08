@@ -1,8 +1,60 @@
 #include <stdio.h>
+#include <sys/fcntl.h>
 
-int main()
+#define READSIZE 1
+int main(int argc,char *argv[] )
 {
-    printf("Hello aaaaaaaaaaa");
+    char* buffer1[READSIZE+1];
+    char* buffer2[READSIZE+1];
+    int i=0;
+    int foundDiff=0;
+    int readOutput1;
+    int readOutput2;
+    
+    
+    memset(buffer2,0,READSIZE+1);//resetting the buffer
+    memset(buffer1,0,READSIZE+1);
+    if(argc<3){
+        //implement error catch of less than 2 files input
+    }
+    int fd1=open(argv[1],O_RDONLY);
+    int fd2=open(argv[2],O_RDONLY);
+    if(fd1 == -1 ||fd2==-1 ){
+        perror("open failed");
+        return 1;
+    }
 
-    return 0;
+
+    do{
+        foundDiff=(buffer1[0]==buffer2[0]);
+        readOutput1=read(fd1,buffer1,READSIZE);
+        readOutput2=read(fd2,buffer2,READSIZE);
+    }while(readOutput1>0&&readOutput2>0&&foundDiff==1);//read(fd1,buffer1,READSIZE)>0 &&read(fd2,buffer2,READSIZE)>0
+
+    if(readOutput1==-1 || readOutput2==-1){
+        perror("failed reading");
+        closeFiles(fd1,fd2);
+        return 1;
+    }
+
+    if((readOutput1==0 && readOutput2>0)||(readOutput1>0 && readOutput2==0)){
+        //not the same size, reached EOF before the other one
+
+        closeFiles(fd1,fd2);
+        return 1;
+    }
+    if(foundDiff==1){
+        printf("found diff!");//to make better
+        return 1;
+    }
+    closeFiles(fd1,fd2);
+    return 2;
+}
+
+//closes two files
+//input: two files
+void closeFiles(int f1, int f2)
+{
+    close(f1);
+    close(f2);
 }
