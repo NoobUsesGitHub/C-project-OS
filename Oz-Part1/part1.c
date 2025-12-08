@@ -1,7 +1,21 @@
 #include <stdio.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
+#include <string.h>
+#include <unistd.h>
 
 #define READSIZE 1
+
+
+
+
+//closes two files
+//input: two files
+void closeFiles(int f1, int f2)
+{
+    close(f1);
+    close(f2);
+}
+
 int main(int argc,char *argv[] )
 {
     char* buffer1[READSIZE+1];
@@ -11,7 +25,8 @@ int main(int argc,char *argv[] )
     int readOutput1;
     int readOutput2;
     
-    
+    argv[1]="test.txt";
+    argv[2]="test.txt";
     memset(buffer2,0,READSIZE+1);//resetting the buffer
     memset(buffer1,0,READSIZE+1);
     if(argc<3){
@@ -51,10 +66,3 @@ int main(int argc,char *argv[] )
     return 2;
 }
 
-//closes two files
-//input: two files
-void closeFiles(int f1, int f2)
-{
-    close(f1);
-    close(f2);
-}
