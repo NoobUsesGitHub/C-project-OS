@@ -25,11 +25,10 @@ int main(int argc,char *argv[] )
     int readOutput1;
     int readOutput2;
     
-    argv[1]="test.txt";
-    argv[2]="test.txt";
     memset(buffer2,0,READSIZE+1);//resetting the buffer
     memset(buffer1,0,READSIZE+1);
-    if(argc<3){
+    if(argc<3 ){
+        return 1;
         //implement error catch of less than 2 files input
         printf("you have %d",argc);
     }
