@@ -34,11 +34,42 @@ int compiler(const *program){
 
 
 int runProcessAndCompareOutput(const *program, const *input, const *output){
-    //per every folder run fork runProcess
-    //find output files
+    pid_t pid;
+    char *stringBuffer;
+    int stringBufferSize=0;
+    int status,returnCode;
+    //run program, create programOutput.txt
+    if((pid=fork())<0)
+        perror("fork error");
+    else
+        if(pid==0)
+        {
+            stringBufferSize=snprintf(NULL,0,".\a.out %s < %s %s",program,input,"> programOutput.txt");
+            stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
+            sprintf(stringBuffer,".\a.out %s < %s %s",program,input,"> programOutput.txt");
+            char* args[]={"sh","-c",stringBuffer,NULL};
+            execvp("sh",args);
+            free(stringBuffer);
+        }
+        waitpid(pid,NULL,0);//awaits program complete
+
     //compare the output file to the correct output file
-    //find program file
-    //run program, have it output it's data to output
+    if((pid=fork())<0)
+        perror("fork error");
+    else
+        if(pid==0)
+        {
+            //child - compare
+            char* args[]={"./comp.out",output,"programOutput.txt",NULL};
+            execvp("./comp.out",args);        
+        }
+    waitpid(pid,&status,0);//checks if files are equal
+    returnCode=WEXITSTATUS(status);
+    printf("%d",returnCode);
+    if(returnCode!=2);
+        return 0;
+    return 1;
+    
 }
 
 int main(int argc,char *argv[])
@@ -99,7 +130,7 @@ int main(int argc,char *argv[])
     FILE *outputFile=fopen(stringBuffer,"w");
     free(stringBuffer);
 
-
+    char programName[BUFFERSIZE*2];
     fgets(currentFile,sizeof(currentFile),folderFile);
     while(currentFile!=NULL){//RETURN EOF?
         grade=-1;
@@ -111,14 +142,14 @@ int main(int argc,char *argv[])
         {
             grade=FAILEDGRADE;//program didnt compile, autoFail
         }
-
-        if(grade!=FAILEDGRADE&&runProcessAndCompareOutput()==0)//no need to check an uncompiled Program
+        strcat(programName,"/a.out");
+        if(grade!=FAILEDGRADE&&runProcessAndCompareOutput(programName,inputFile,outputFile)==0)//no need to check an uncompiled Program
         {
             grade=FAILEDGRADE;
         }else{
             grade=ACEDGRADE;
         }
-
+        programName[0]='\0';
         stringBufferSize=snprintf(NULL,0,"%s,%d",currentFile,0);
         studentOutput=malloc(sizeof(char)*stringBufferSize+1);
         sprintf(studentOutput,"%s,%d",currentFile,grade); 
