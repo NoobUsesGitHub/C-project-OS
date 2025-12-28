@@ -10,6 +10,21 @@
 #define ACEDGRADE 100
 #define nameSize 450 //assuming this is the max size for a normal name
 
+
+
+
+FILE* fileOpenerFromPath(char *path,char *catinated,char *mode){
+    char *stringBuffer;
+    int stringBufferSize=0;
+    stringBufferSize=snprintf(NULL,0,"%s%s",path,catinated);
+    stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
+    sprintf(stringBuffer,"%s%s",path,catinated);
+    
+    FILE* f=fopen(stringBuffer,mode);
+    free(stringBuffer);
+    return f;
+}
+
 //input: a file path to a c file
 //output: 1 if compiled and created a.out file, 0 if didnt compile
 int compiler(const *program){
@@ -74,14 +89,7 @@ int runProcessAndCompareOutput(const *program, const *input, const *output){
 
 int main(int argc,char *argv[])
 {
-    //input check
-    if(argc!=2)
-    {
-        perror("wrong amount of arguments");
-        exit(-1);
-    }    
-    //open config file
-    FILE *configFile=fopen(argv[1],"r");
+
     char programFolder[BUFFERSIZE];
     char inputFile[BUFFERSIZE];
     char outputFile[BUFFERSIZE];
@@ -92,10 +100,21 @@ int main(int argc,char *argv[])
     pid_t pid;
     char *stringBuffer;
     int stringBufferSize=0;
+
+    //input check
+    if(argc!=2)
+    {
+        perror("wrong amount of arguments");
+        exit(-1);
+    }    
+    //open config file
+    FILE *configFile=fopen(argv[1],"r");
+
     fgets(programFolder,sizeof(programFolder),configFile);
     fgets(inputFile,sizeof(inputFile),configFile);
     fgets(outputFile,sizeof(outputFile),configFile);
     fclose(configFile);
+
     programFolder[strcspn(programFolder, "\r\n")] = '\0';
     programFolder[strcspn(inputFile, "\r\n")] = '\0';
     programFolder[strcspn(outputFile, "\r\n")] = '\0';
@@ -118,24 +137,16 @@ int main(int argc,char *argv[])
     waitpid(pid,NULL,0);
     //look through the list of folders, start for looping through them
     
-    stringBufferSize=snprintf(NULL,0,"%s%s",programFolder,"/folderNames.text");
-    stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-    sprintf(stringBuffer,"%s%s",programFolder,"/folderNames.text");
-    FILE *folderFile=fopen(stringBuffer,"r");
-    free(stringBuffer);
+    FILE *folderFile=fileOpenerFromPath(programFolder,"/folderNames.text","r");
+    FILE *outputFile=fileOpenerFromPath(programFolder,"/results.csv","w");
     
-    stringBufferSize=snprintf(NULL,0,"%s%s",programFolder,"/results.csv");
-    stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-    sprintf(stringBuffer,"%s%s",programFolder,"/results.csv");
-    FILE *outputFile=fopen(stringBuffer,"w");
-    free(stringBuffer);
 
     char programName[BUFFERSIZE*2];
     fgets(currentFile,sizeof(currentFile),folderFile);
     while(currentFile!=NULL){//RETURN EOF?
         grade=-1;
         //pull the program
-        stringBufferSize=snprintf(NULL,0,"%s,%d",currentFile,0);
+        stringBufferSize=snprintf(NULL,0,"%s/%s",programFolder,currentFile);
         stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
         sprintf(stringBuffer,"%s/%s",programFolder,currentFile);
         if(compiler(stringBuffer)==0)
