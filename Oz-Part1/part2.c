@@ -30,12 +30,12 @@ FILE* fileOpenerFromPath(char *path,char *catinated,char *mode){
 int compiler(char *program){
     pid_t pid;
     int status,returnCode;
-    //WRONGGGG need to find the c file
     if((pid=fork())<0)
                 perror("fork error");
             else
                 if(pid==0){
                     //child - compiler
+                    strcat(program,"*.c");
                     char* args[]={"gcc",program,"-o","a.out",NULL};
                     execvp("gcc",args);        
                 }
@@ -135,11 +135,11 @@ int main(int argc,char *argv[])
     if((pid=fork())<0)
         perror("fork error");
     else
-        if(pid==0){//WRONGGGG
+        if(pid==0){
             //child- will run ls as a shell command on execvp
             stringBufferSize=snprintf(NULL,0,"ls %s %s",programFolder,"> folderNames.text");
             stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-            sprintf(stringBuffer,"ls %s %s",programFolder,"> folderNames.text");
+            sprintf(stringBuffer,"ls %s > folderNames.text",programFolder);
             char* args[]={"sh","-c",stringBuffer,NULL};
             execvp("sh",args);
             free(stringBuffer);//WRONGGGG
@@ -153,8 +153,8 @@ int main(int argc,char *argv[])
     FILE *gradeOutputFile=fileOpenerFromPath("","./results.csv","w");
 
     char programName[BUFFERSIZE*2];
-    fgets(currentFile,sizeof(currentFile),folderFile);
-    while(currentFile!=NULL){//RETURN EOF? WRONGGGG
+    
+    while(fgets(currentFile,sizeof(currentFile),folderFile)!=NULL){
         currentFile[strcspn(currentFile, "\r\n")] = '\0';
         grade=-1;
         //pull the program
@@ -182,7 +182,6 @@ int main(int argc,char *argv[])
         if(fwrite(studentOutput,sizeof(char),strlen(studentOutput),gradeOutputFile)<=strlen(studentOutput))
             perror("writing Error");
         free(studentOutput);
-        fgets(currentFile,sizeof(currentFile),folderFile);
     }
     
     fclose(folderFile);
