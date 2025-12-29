@@ -3,12 +3,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>   // wait, waitpid + status macros
 #include <unistd.h>     // fork, execvp
+#include <fcntl.h>      //OWRTONLY
 #include <string.h>
 
-#define BUFFERSIZE 1242
+#define BUFFERSIZE 80
 #define FAILEDGRADE 0
 #define ACEDGRADE 100
-#define nameSize 450 //assuming this is the max size for a normal name
+#define nameSize 51 //assuming this is the max size for a normal name
 
 
 
@@ -26,7 +27,7 @@ FILE* fileOpenerFromPath(char *path,char *catinated,char *mode){
 }
 
 //input: a file path to a c file
-//output: 1 if compiled and created a.out file, 0 if didnt compile
+//output: 1 if compiled and created main.exe file, 0 if didnt compile
 int compiler(char *program){
     pid_t pid;
     int status,returnCode;
@@ -36,7 +37,7 @@ int compiler(char *program){
                 if(pid==0){
                     //child - compiler
                     strcat(program,"*.c");
-                    char* args[]={"gcc",program,"-o","a.out",NULL};
+                    char* args[]={"gcc",program,"-o","main.exe",NULL};
                     execvp("gcc",args);        
                 }
             pid_t waitTmp=waitpid(pid,&status,0);//checks if child finished successfully
@@ -56,6 +57,7 @@ int compiler(char *program){
 
 int runProcessAndCompareOutput(char *program, char *input, char *output){
     pid_t pid;
+    int fd;
     char *stringBuffer;
     int stringBufferSize=0;
     int status,returnCode;
@@ -65,12 +67,16 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
     else
         if(pid==0)
         {
-            stringBufferSize=snprintf(NULL,0,"%s < %s %s",program,input,"> programOutput.txt");
-            stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-            sprintf(stringBuffer,"%s < %s %s",program,input,"> programOutput.txt");
-            char* args[]={"sh","-c",stringBuffer,NULL};
-            execvp("sh",args);
-            free(stringBuffer);
+            close(1);
+            fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);
+            dup(fd);
+            // stringBufferSize=snprintf(NULL,0,"%s < %s %s",program,input,"> ");
+            // stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
+            // sprintf(stringBuffer,"%s < %s %s",program,input,"> programOutput.txt");
+            char* args[]={program,input,NULL};
+            close(fd);
+            execvp(program,args);
+            // free(stringBuffer);
             exit(-1);//failed
         }
         waitpid(pid,NULL,0);//awaits program complete
@@ -137,13 +143,18 @@ int main(int argc,char *argv[])
         perror("fork error");
     else
         if(pid==0){
-            //child- will run ls as a shell command on execvp
-            stringBufferSize=snprintf(NULL,0,"ls %s %s",programFolder,"> folderNames.text");
-            stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-            sprintf(stringBuffer,"ls %s > folderNames.text",programFolder);
-            char* args[]={"sh","-c",stringBuffer,NULL};
-            execvp("sh",args);
-            free(stringBuffer);
+            //child- will run ls with dup to close the stdout
+            close(STDOUT_FILENO);//closes ouput
+            int fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);
+            dup(fd);
+            // stringBufferSize=snprintf(NULL,0,"ls %s %s",programFolder,"> folderNames.text");
+            // stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
+            // sprintf(stringBuffer,"ls %s > folderNames.text",programFolder);
+            char* args[]={"ls",programFolder,NULL};
+            close(fd);
+            execvp("ls",args);
+            // free(stringBuffer);
+
             exit(-1);//failed
         }
     waitpid(pid,NULL,0);
@@ -169,7 +180,7 @@ int main(int argc,char *argv[])
         }
         free(stringBuffer);
         strcpy(programName,programFolder);//reset program name
-        strcat(programName,"/a.out");
+        strcat(programName,"/main.exe");
         if(grade!=FAILEDGRADE)//no need to check an uncompiled Program
         {
             if(runProcessAndCompareOutput(programName,inputFile,outputFile)==0)
