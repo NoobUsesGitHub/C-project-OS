@@ -57,7 +57,7 @@ int compiler(char *program){
 
 int runProcessAndCompareOutput(char *program, char *input, char *output){
     pid_t pid;
-    int fd;
+    int fd,fd2;
     char *stringBuffer;
     int stringBufferSize=0;
     int status,returnCode;
@@ -70,11 +70,15 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
             close(1);
             fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);
             dup(fd);
+            close(0);
+            fd2=open(input,O_RDONLY,0);
+            dup(fd2);
             // stringBufferSize=snprintf(NULL,0,"%s < %s %s",program,input,"> ");
             // stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
             // sprintf(stringBuffer,"%s < %s %s",program,input,"> programOutput.txt");
             char* args[]={program,input,NULL};
             close(fd);
+            close(fd2);
             execvp(program,args);
             // free(stringBuffer);
             exit(-1);//failed
@@ -89,7 +93,7 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
         {
             //child - compare
             char* args[]={"./comp.out",output,"programOutput.txt",NULL};
-            execvp("./comp.out",args);        
+            execvp("./comp.out",args);
         }
     pid_t waitTmp=waitpid(pid,&status,0);//checks if files are equal
     if(waitTmp==-1)
@@ -98,7 +102,7 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
         returnCode=WEXITSTATUS(status);
         else
             returnCode=0;
-    printf("%d",returnCode);
+    printf("%d",returnCode);//test print
     if(returnCode!=2)
         return 0;
     return 1;
@@ -145,7 +149,7 @@ int main(int argc,char *argv[])
         if(pid==0){
             //child- will run ls with dup to close the stdout
             close(STDOUT_FILENO);//closes ouput
-            int fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);
+            int fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);//create new file
             dup(fd);
             // stringBufferSize=snprintf(NULL,0,"ls %s %s",programFolder,"> folderNames.text");
             // stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
