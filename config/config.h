@@ -7,6 +7,6 @@
 
 #define FILES_IDENTICAL 2
 #define FILES_NOT_IDENTICAL 1
-#define ERROR 3
+#define ERROR 0
 
 #endif
