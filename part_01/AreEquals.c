@@ -1,105 +1,60 @@
-#include <stdio.h>
+#include "../config/config.h"
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/wait.h>
-
-//Exit codes
-//Exit code for identical files
-#define FILES_IDENTICAL 2
-//Exit code for different files
-#define FILES_NOT_IDENTICAL 1
-//Exit code for errors
-#define ERROR 0
-
-enum compare_exit_codes {
-    COMPARE_SUCCESS = 0,
-    COMPARE_FAILURE = 1,
-    COMPARE_ERROR   = 2
-};
+#include <fcntl.h>
+#include <string.h>
 
 /**
- * This function compare two files by getting their paths, and returns either they are equal or not.
+ * This function compares two files by actually comparing their bytes, and returns either they are equal or not.
  * Input: 
  *      - const char *file_path1: file path, as a string
  *      - const char *file_path2: file path, as a string
  * Output:
  *      - FILES_NOT_IDENTICAL value if the files are different
  *      - FILES_IDENTICAL value if the files are the same
-*/
-int compare_files(const char *file_path1, const char *file_path2) {
-    pid_t pid;
-    int status;
-
-    //create a child
-    pid = fork();
-    //check for an error
-    if (pid < 0) {
-        printf("error: fork failed\n");
-        exit(ERROR);
-    } else
-    // for the child
-    if (pid == 0) {
-        // build a syscall
-        char *call_args[] = { (char *)"cmp", "--silent", (char *)file_path1, (char *)file_path2, NULL};
-        execvp("cmp", call_args);
-        // if execvp fails
-        printf("error: execvp failed\n");
-        exit(ERROR);
+ */
+int compare_by_bytes(const char *file_path1, const char *file_path2) {
+    int fd1, fd2;
+    char bfr1[BUFFER_SIZE];
+    char bfr2[BUFFER_SIZE];
+    ssize_t read_bytes1, read_bytes2;
+    //O_RDONLY = open as read only
+    fd1 = open(file_path1, O_RDONLY);
+    fd2 = open(file_path2, O_RDONLY);
+    //run over the file
+    //check for failures
+    if (fd1 < 0 || fd2 < 0) {
+        if (fd1 >= 0)
+            close(fd1);
+        if (fd2 >= 0)
+            close(fd2);
+        return(ERROR);
     }
-    //for the parent
-    else {
-        //wait for child to finish
-        if (waitpid(pid, &status, 0) == ERROR) {
-            printf("error: waiting for child failed\n");
+    while(1) {
+        // run over the file
+        read_bytes1 = read(fd1, bfr1, BUFFER_SIZE);
+        read_bytes2 = read(fd2, bfr2, BUFFER_SIZE);
+        //if read fails
+        if (read_bytes1 < 0 || read_bytes2 < 0)
             return ERROR;
+        // if the read chunks are not equal
+        if (read_bytes1 != read_bytes2 || memcmp(bfr1, bfr2, read_bytes1) != 0) {
+            if (fd1 >= 0)
+                close(fd1);
+            if (fd2 >= 0)
+                close(fd2);
+            return(FILES_NOT_IDENTICAL);
         }
-        //if child failed
-        //WIFEXITED = "was it flagged exited"
-        if (!WIFEXITED(status)) {
-            printf("error: child failed\n");
-            return ERROR;
-        }
-        //get the compare result from the child
-        //WEXITSTATUS = "wait exit status"
-        int compare_value = WEXITSTATUS(status);
-        //according to the result (may we'd like to return different values in the future)
-        switch (compare_value) {
-            // if equals
-            case COMPARE_SUCCESS:
-                return FILES_IDENTICAL;
-            case COMPARE_FAILURE:
-                return FILES_NOT_IDENTICAL;
-            case COMPARE_ERROR:
-            default:
-                printf("error: compare failed\n");
-                return ERROR;
-        }
+        //break condition
+        if (read_bytes1 == 0 && read_bytes2 == 0)
+            break;
     }
-    //if did not reach the end
-    return ERROR;
+    // if we got to the end, they are equal
+    close(fd1);
+    close(fd2);
+    return FILES_IDENTICAL;
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        //print error to errors stream
-        fprintf(stderr, "error: expected to get two file paths, instead got %d arguments\n", (argc-1));
-        exit(ERROR);
-    }
-    int exit_code = compare_files(argv[1], argv[2]);
-    switch (exit_code) {
-        case FILES_IDENTICAL: {
-            printf("The two files are identical ^_^\n");
-            break;
-        }
-        case FILES_NOT_IDENTICAL: {
-            printf("The two files are not identical x_x\n");
-            break;
-        }
-        default:
-            printf("An error did occur and the comparison was not chekced 0_0\n");
-    }
-    if (exit_code == ERROR) {
-        return FILES_NOT_IDENTICAL;
-    }
-    return exit_code;
-}
+    return compare_by_bytes(argv[1], argv[2]);
+} 
