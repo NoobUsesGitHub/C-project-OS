@@ -70,7 +70,8 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
             sprintf(stringBuffer,"%s < %s %s",program,input,"> programOutput.txt");
             char* args[]={"sh","-c",stringBuffer,NULL};
             execvp("sh",args);
-            free(stringBuffer);//WRONGGGG
+            free(stringBuffer);
+            exit(-1);//failed
         }
         waitpid(pid,NULL,0);//awaits program complete
 
@@ -142,7 +143,8 @@ int main(int argc,char *argv[])
             sprintf(stringBuffer,"ls %s > folderNames.text",programFolder);
             char* args[]={"sh","-c",stringBuffer,NULL};
             execvp("sh",args);
-            free(stringBuffer);//WRONGGGG
+            free(stringBuffer);
+            exit(-1);//failed
         }
     waitpid(pid,NULL,0);
     //look through the list of folders, start for looping through them
