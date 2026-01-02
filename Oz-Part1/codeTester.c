@@ -5,27 +5,46 @@
 #include <unistd.h>     // fork, execvp
 #include <fcntl.h>      //OWRTONLY
 #include <string.h>
+#include "./config/config.h"
 
 #define BUFFERSIZE 80
-#define FAILEDGRADE 0
-#define ACEDGRADE 100
-#define nameSize 51 //assuming this is the max size for a normal name
+#define TEMPOUTPUTFILE "programOutput.txt"
 
 
-
-
+//input: path and read/write
+//output: opens a file object from path
 FILE* fileOpenerFromPath(char *path,char *catinated,char *mode){
     char *stringBuffer;
     int stringBufferSize=0;
-    stringBufferSize=snprintf(NULL,0,"%s%s",path,catinated);
+    stringBufferSize=snprintf(NULL,0,"%s%s",path,catinated);//checking the needed size
     stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
     sprintf(stringBuffer,"%s%s",path,catinated);
-    
     FILE* f=fopen(stringBuffer,mode);
     free(stringBuffer);
     return f;
 }
 
+//input: a path to folder
+//output: nothing (creates a file with the ls output for the path)
+FILE* createFolderList(char* programFolder)
+{
+    pid_t pid;
+    if((pid=fork())<0)
+        perror("fork error");
+    else
+        if(pid==0){
+            //child- will run ls with dup to close the stdout
+            int fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);//create new file
+            dup2(fd,STDOUT_FILENO);
+            char* args[]={"ls",programFolder,NULL};
+            close(fd);
+            execvp("ls",args);
+            exit(-1);//failed
+        }
+    
+    waitpid(pid,NULL,0);
+    return fileOpenerFromPath("","./folderNames.text","r");
+}
 //input: a file path to a c file
 //output: 1 if compiled and created main.exe file, 0 if didnt compile
 int compiler(char *program){
@@ -36,25 +55,29 @@ int compiler(char *program){
             else
                 if(pid==0){
                     //child - compiler
+                    //ignoring the error codes from compiler
+                    int dn_in = open("/dev/null",O_WRONLY);
+                    dup2(dn_in,STDOUT_FILENO);
+                    dup2(dn_in,STDERR_FILENO);
                     char cmd[4096];
-                    snprintf(cmd, sizeof(cmd), "gcc '%s'/*.c -o main.exe", program);
+                    snprintf(cmd, sizeof(cmd), "gcc '%s'/*.c -o main.exe", program);//checking the needed size
                     char *args[] = {"sh", "-c", cmd, NULL};
                     execvp("sh", args);    
                 }
             pid_t waitTmp=waitpid(pid,&status,0);//checks if child finished successfully
             if(waitTmp==-1)
                 perror("waitpid Failed");
-            else if(WIFEXITED(status))
+            else if(WIFEXITED(status)){
                     returnCode=WEXITSTATUS(status);
-                else
+                }else
                     returnCode=0;
             if(returnCode!=0)
                 return 0;
-
     return 1;
 }
 
-
+//input: program name, input file and output file to compare
+//output: 1 if the output of program is the same of the expected output when inserted input
 int runProcessAndCompareOutput(char *program, char *input, char *output){
     pid_t pid;
     int fd,fd2;
@@ -64,25 +87,19 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
         perror("fork error");
     else{
         if(pid==0)
-        {
-            close(1);
-            fd=open("programOutput.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);
-            dup(fd);
-            close(0);
+        {//IO redirect
+            fd=open(TEMPOUTPUTFILE,(O_WRONLY|O_CREAT|O_TRUNC),0666);
+            dup2(fd,STDOUT_FILENO);
             fd2=open(input,O_RDONLY,0);
-            dup(fd2);
-            // stringBufferSize=snprintf(NULL,0,"%s < %s %s",program,input,"> ");
-            // stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-            // sprintf(stringBuffer,"%s < %s %s",program,input,"> programOutput.txt");
-            char* args[]={program,input,NULL};
+            dup2(fd2,STDIN_FILENO);
+            char* args[]={program,NULL};
             close(fd);
             close(fd2);
             execvp(program,args);
-            // free(stringBuffer);
             exit(-1);//failed
         }
-        waitpid(pid,NULL,0);//awaits program complete
     }
+    waitpid(pid,NULL,0);//awaits program complete
     //compare the output file to the correct output file
     if((pid=fork())<0)
         perror("fork error");
@@ -90,9 +107,7 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
         if(pid==0)
         {
             //child - compare
-            char* args[]={"./comp.out",output,"programOutput.txt",NULL};
-
-        printf("\n!!!!testing file %s!!!!\n",output);//test print
+            char* args[]={"./comp.out",output,TEMPOUTPUTFILE,NULL};
             execvp("./comp.out",args);
         }
     pid_t waitTmp=waitpid(pid,&status,0);//checks if files are equal
@@ -100,8 +115,7 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
         perror("waitpid failed");
     else if(WIFEXITED(status))
         {
-        returnCode=WEXITSTATUS(status);
-        printf("\n!!!!testing file %d!!!!\n",returnCode);//test print
+            returnCode=WEXITSTATUS(status);
         }else
         {
             returnCode=0;
@@ -117,10 +131,9 @@ int main(int argc,char *argv[])
     char programFolder[BUFFERSIZE];
     char inputFile[BUFFERSIZE];
     char outputFile[BUFFERSIZE];
-    char currentFile[BUFFERSIZE];
-    char *studentOutput;
+    char currentStudentFile[BUFFERSIZE];
+    char *studentGradeOutput;
     int grade;
-    pid_t pid;
     char *stringBuffer;
     int stringBufferSize=0;
 
@@ -141,66 +154,46 @@ int main(int argc,char *argv[])
     programFolder[strcspn(programFolder, "\r\n")] = '\0';
     inputFile[strcspn(inputFile, "\r\n")] = '\0';
     outputFile[strcspn(outputFile, "\r\n")] = '\0';
-    // printf("%s",programFolder);
-    // printf("%s",inputFile);
-    // printf("%s",outputFile);
-    if((pid=fork())<0)
-        perror("fork error");
-    else
-        if(pid==0){
-            //child- will run ls with dup to close the stdout
-            int fd=open("folderNames.text",(O_WRONLY|O_CREAT|O_TRUNC),0666);//create new file
-            close(STDOUT_FILENO);//closes ouput
-            dup(fd);
-            // stringBufferSize=snprintf(NULL,0,"ls %s %s",programFolder,"> folderNames.text");
-            // stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-            // sprintf(stringBuffer,"ls %s > folderNames.text",programFolder);
-            char* args[]={"ls",programFolder,NULL};
-            close(fd);
-            execvp("ls",args);
-            // free(stringBuffer);
-            exit(-1);//failed
-        }
-    waitpid(pid,NULL,0);
-    //look through the list of folders, start for looping through them
     
-    //FILE *folderFile=fileOpenerFromPath(programFolder,"/folderNames.text","r");
-    FILE *folderFile=fileOpenerFromPath("","./folderNames.text","r");
-    //FILE *gradeOutputFile=fileOpenerFromPath(programFolder,"/results.csv","w");
+
+    FILE *folderFile=createFolderList(programFolder);
+    //look through the list of folders, to start looping through them
     FILE *gradeOutputFile=fileOpenerFromPath("","./results.csv","w");
-    char programName[BUFFERSIZE*2];
+ 
     
-    while(fgets(currentFile,sizeof(currentFile),folderFile)!=NULL){
-        currentFile[strcspn(currentFile, "\r\n")] = '\0';
+    while(fgets(currentStudentFile,sizeof(currentStudentFile),folderFile)!=NULL){
+        currentStudentFile[strcspn(currentStudentFile, "\r\n")] = '\0';
         grade=-1;
         //pull the program
-        stringBufferSize=snprintf(NULL,0,"%s/%s",programFolder,currentFile);
+        stringBufferSize=snprintf(NULL,0,"%s/%s",programFolder,currentStudentFile);//checking the needed size
         stringBuffer=malloc(sizeof(char)*stringBufferSize+1);
-        sprintf(stringBuffer,"%s/%s",programFolder,currentFile);
+        sprintf(stringBuffer,"%s/%s",programFolder,currentStudentFile);
         if(compiler(stringBuffer)==0)//compiling at this folder
         {
             grade=FAILEDGRADE;//program didnt compile, autoFail
         }
         free(stringBuffer);
-        strcpy(programName,programFolder);//reset program name
-        strcat(programName,"/main.exe");
+        
         if(grade!=FAILEDGRADE)//no need to check an uncompiled Program
         {
-            if(runProcessAndCompareOutput(programName,inputFile,outputFile)==0)
+               if(runProcessAndCompareOutput("./main.exe",inputFile,outputFile)==0)
                 grade=FAILEDGRADE;
             else
                 grade=ACEDGRADE;
         }
-        programName[0]='\0';
-        stringBufferSize=snprintf(NULL,0,"%s,%d\n",currentFile,0);
-        studentOutput=malloc(sizeof(char)*stringBufferSize+1);
-        sprintf(studentOutput,"%s,%d\n",currentFile,grade); 
-        if(fwrite(studentOutput,sizeof(char),strlen(studentOutput),gradeOutputFile)<=strlen(studentOutput))
+ 
+        stringBufferSize=snprintf(NULL,0,"%s,%d\n",currentStudentFile,grade);//checking the needed size
+        studentGradeOutput=malloc(sizeof(char)*stringBufferSize+1);
+        sprintf(studentGradeOutput,"%s,%d\n",currentStudentFile,grade); 
+ 
+        if(fwrite(studentGradeOutput,sizeof(char),strlen(studentGradeOutput),gradeOutputFile)<strlen(studentGradeOutput))
             perror("writing Error");
-        free(studentOutput);
+        free(studentGradeOutput);
+        currentStudentFile[0]='\0';
     }
     
     fclose(folderFile);
     fclose(gradeOutputFile);
     exit(0);
 }
+//compile as gcc codeTester.c -o a.out
