@@ -59,6 +59,7 @@ int compiler(char *program){
                     int dn_in = open("/dev/null",O_WRONLY);
                     dup2(dn_in,STDOUT_FILENO);
                     dup2(dn_in,STDERR_FILENO);
+                    close("/dev/null");
                     char cmd[4096];
                     snprintf(cmd, sizeof(cmd), "gcc '%s'/*.c -o main.exe", program);//checking the needed size
                     char *args[] = {"sh", "-c", cmd, NULL};
