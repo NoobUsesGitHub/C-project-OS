@@ -2,32 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug inprog.out (gdb)",
+      "name": "Debug PARENT (stay in main)",
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/inprog.out",
       "args": ["${workspaceFolder}/testConfigFile.txt"],
       "cwd": "${workspaceFolder}",
-      "stopAtEntry": false,
+      "stopAtEntry": true,
       "externalConsole": false,
       "MIMode": "gdb",
       "miDebuggerPath": "/usr/bin/gdb",
       "setupCommands": [
-        {
-          "description": "Enable pretty printing",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Stop on forked child (useful since your program forks)",
-          "text": "set follow-fork-mode child",
-          "ignoreFailures": true
-        },
-        {
-          "description": "Keep both parent and child under gdb",
-          "text": "set detach-on-fork off",
-          "ignoreFailures": true
-        }
+        { "text": "set follow-fork-mode parent" },
+        { "text": "set detach-on-fork on" },
+        { "text": "catch fork" },
+        { "text": "catch exec" }
       ]
     }
   ]

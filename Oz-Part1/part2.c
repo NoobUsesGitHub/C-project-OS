@@ -58,13 +58,11 @@ int compiler(char *program){
 int runProcessAndCompareOutput(char *program, char *input, char *output){
     pid_t pid;
     int fd,fd2;
-    char *stringBuffer;
-    int stringBufferSize=0;
     int status,returnCode;
     //run program, create programOutput.txt
     if((pid=fork())<0)
         perror("fork error");
-    else
+    else{
         if(pid==0)
         {
             close(1);
@@ -84,11 +82,11 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
             exit(-1);//failed
         }
         waitpid(pid,NULL,0);//awaits program complete
-
+    }
     //compare the output file to the correct output file
     if((pid=fork())<0)
         perror("fork error");
-    else
+    else{
         if(pid==0)
         {
             //child - compare
@@ -105,7 +103,10 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
         returnCode=WEXITSTATUS(status);
         printf("\n!!!!testing file %d!!!!\n",returnCode);//test print
         }else
+        {
             returnCode=0;
+        }
+    }
     if(returnCode!=2)
         return 0;
     return 1;
@@ -113,14 +114,12 @@ int runProcessAndCompareOutput(char *program, char *input, char *output){
 
 int main(int argc,char *argv[])
 {
-
     char programFolder[BUFFERSIZE];
     char inputFile[BUFFERSIZE];
     char outputFile[BUFFERSIZE];
     char currentFile[BUFFERSIZE];
     char *studentOutput;
     int grade;
-    int folderAmount=0;
     pid_t pid;
     char *stringBuffer;
     int stringBufferSize=0;
