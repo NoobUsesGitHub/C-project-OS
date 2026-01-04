@@ -11,3 +11,6 @@ How to run:
 
 2. Compile the second part:
     gcc part_02/CodeTester.c -o a.out
+
+    Then run:
+    ./a.out config/text_configuration_file.txt
