@@ -27,7 +27,7 @@ int compare_files(const char *file_path1, const char *file_path2) {
     // for the child
     if (pid == 0) {
         // build a syscall
-        char *call_args[] = { "./AreEquals", (char *)file_path1, (char *)file_path2, NULL};
+        char *call_args[] = { "./part_01/AreEquals", (char *)file_path1, (char *)file_path2, NULL};
         execvp(call_args[0], call_args);
         // if execvp fails
         printf("error: execvp failed\n");
@@ -78,8 +78,3 @@ int main(int argc, char *argv[]) {
     }
     return exit_code;
 }
-
-/*
-To compile:
-gcc -I. part_01/AreEquals.c -o part_01/AreEquals && gcc -I. part_01/CompareFiles.c -o part_01/comp.out
-*/ 
