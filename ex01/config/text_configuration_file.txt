@@ -1,0 +1,3 @@
+./example_files/input_data
+./example_files/input.txt
+./example_files/expected_amount.txt
