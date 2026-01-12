@@ -1,8 +1,8 @@
-package Ex03.Runners;
+package MainPackage.Runners;
 
-import Ex03.ProcessPackage.ProcessPCB;
 import java.util.Collection;
 
+import MainPackage.ProcessPackage.ProcessPCB;
 
 public class FCFS implements ProcessRunner{
 

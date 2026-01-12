@@ -1,6 +1,6 @@
-package Ex03.Runners;
+package MainPackage.Runners;
 
-import Ex03.ProcessPackage.ProcessPCB;
+import MainPackage.ProcessPackage.ProcessPCB;
 import java.util.Collection;
 
 public class RoundRobin implements ProcessRunner{

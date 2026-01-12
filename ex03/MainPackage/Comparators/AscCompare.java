@@ -1,6 +1,6 @@
-package  Ex03.Comparators;
+package  MainPackage.Comparators;
 
-import Ex03.ProcessPackage.ProcessPCB;
+import MainPackage.ProcessPackage.ProcessPCB;
 import java.util.Comparator;
 
 public class AscCompare implements  Comparator<ProcessPCB>{//will be used for FCFS

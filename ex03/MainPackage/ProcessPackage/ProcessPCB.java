@@ -1,4 +1,4 @@
-package Ex03.ProcessPackage;
+package MainPackage.ProcessPackage;
 
 public class ProcessPCB {
     private final double startTime;
