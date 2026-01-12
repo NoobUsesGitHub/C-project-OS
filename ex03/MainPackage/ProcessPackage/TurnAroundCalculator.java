@@ -65,7 +65,7 @@ public static void main(String[] args) {
     }
     
     cp.sort(new Ex03.Comparators.AscCompare());
-    
+    //copy array into it    
     turnAroundPrinter()
     
     
