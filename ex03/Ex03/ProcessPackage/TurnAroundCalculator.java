@@ -1,4 +1,4 @@
-package Ex03;
+package Ex03.ProcessPackage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public class TurnAroundCalculator {
 public static void main(String[] args) {
     File f=new File(args[0]);
     int numberOfProcs=-1;
-    ArrayList<Process> cp=new ArrayList<Process>();
+    ArrayList<ProcessPCB> cp=new ArrayList<ProcessPCB>();
     try(Scanner s=new Scanner(f)){
         /*
             we assume the file is organized as such
@@ -48,7 +48,7 @@ public static void main(String[] args) {
        while(s.hasNextLine()&&i<numberOfProcs){
         line=s.nextLine();
         try{
-            Process p=new Process(line, i);
+            ProcessPCB p=new ProcessPCB(line, i);
             cp.add(p);
         }
         catch(MatchException e){

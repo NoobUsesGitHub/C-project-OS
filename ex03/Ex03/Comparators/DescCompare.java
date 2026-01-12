@@ -1,14 +1,13 @@
 package  Ex03.Comparators;
 
-import Ex03.Process;
+import Ex03.ProcessPackage.ProcessPCB;
 import java.util.Comparator;
 
-public class DescCompare<Procees> implements  Comparator<Process>{//will be used for LCFS
+public class DescCompare<Procees> implements  Comparator<ProcessPCB>{//will be used for LCFS
 
     @Override
-    public int compare(Process o1, Process o2) {
-        Comparator<Process> c=new AscCompare<Process>();
-        return c.compare(o1, o2)*-1;
+    public int compare(ProcessPCB o1, ProcessPCB o2) {
+        return (new AscCompare()).compare(o1, o2)*-1;//DESC is just the opposite of ASC
     }
     
 }

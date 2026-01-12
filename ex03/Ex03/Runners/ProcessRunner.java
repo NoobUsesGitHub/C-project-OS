@@ -1,8 +1,8 @@
 package Ex03.Runners;
 
-import Ex03.Process;
+import Ex03.ProcessPackage.ProcessPCB;
 import java.util.Collection;
 
 public interface ProcessRunner{
-    void runProcess(Collection<Process> ar);
+    void runProcess(Collection<ProcessPCB> ar);
 }

@@ -1,6 +1,6 @@
-package Ex03;
+package Ex03.ProcessPackage;
 
-public class Process {
+public class ProcessPCB {
     private final double startTime;
     private double endTime;
     private boolean terminated;
@@ -9,7 +9,7 @@ public class Process {
     private final int index;
     
 
-    public Process(double sT, double eT, double tN, int i){
+    public ProcessPCB(double sT, double eT, double tN, int i){
         this.startTime=sT;
         this.endTime=eT;
         this.timeNeeded=tN;
@@ -18,7 +18,7 @@ public class Process {
         this.index=i;
     }
 
-    public Process(String line, int i) throws MatchException{
+    public ProcessPCB(String line, int i) throws MatchException{
         String[] input=line.split(",");
         if(input.length>2){
             throw(new MatchException("line "+line+" not built as expected", null));

@@ -1,12 +1,12 @@
 package  Ex03.Comparators;
 
-import Ex03.Process;
+import Ex03.ProcessPackage.ProcessPCB;
 import java.util.Comparator;
 
-public class AscCompare implements  Comparator<Process>{//will be used for FCFS
+public class AscCompare implements  Comparator<ProcessPCB>{//will be used for FCFS
 
     @Override
-    public int compare(Process o1, Process o2) {
+    public int compare(ProcessPCB o1, ProcessPCB o2) {
         if(o1.getStartTime()>o2.getStartTime()){
             return 1;
         }
