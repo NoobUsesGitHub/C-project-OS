@@ -44,7 +44,7 @@ public class LCFSNP implements ProcessRunner{//non preemptive
         processLeft--;
     }
     turnAroundResult=turnAroundResult/ar.size();
-    System.out.println("LCFS: mean turnaround = "+turnAroundResult);
+    System.out.println("LCFS (NP): mean turnaround = "+turnAroundResult);
  }
  
 

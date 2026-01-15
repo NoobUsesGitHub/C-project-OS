@@ -46,8 +46,6 @@ public class TurnAroundCalculator {
         deepCopy(cp,inputToRunners);
         new LCFSP().runProcess(inputToRunners);
         
-
-
     }
     //     try(Scanner s=new Scanner(f)){
     //         /*
