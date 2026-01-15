@@ -33,6 +33,24 @@ public class LCFSP implements ProcessRunner{//preemptive
         //run until time needed is 0
         globalTime=current.getEndTime();   
         current.setTerminated();     
+        
+        while(!waiting.empty()){
+            current=waiting.pop();
+            if((current.getStartTime()+current.getTimeNeeded())>nextP.getStartTime())
+            {
+                current.setTimeUsed(current.getStartTime()+current.getTimeNeeded()-nextP.getStartTime());
+                waiting.add(current);
+                current=nextP;
+                continue;
+            }
+                current.setEndTime(globalTime+(current.getTimeNeeded()-current.getTimeUsed()));
+            turnAroundResult+=current.getEndTime()-current.getStartTime();
+            //run the waiting queue one after another
+            //run until time needed is 0
+            globalTime=current.getEndTime();   
+            current.setTerminated();     
+        {
+        }
     }
 
     //the last process before we run the "waiting stack"
