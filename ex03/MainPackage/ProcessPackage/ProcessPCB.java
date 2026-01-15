@@ -18,6 +18,15 @@ public class ProcessPCB {
         this.index=i;
     }
 
+    public ProcessPCB(ProcessPCB o){
+        this.startTime=o.startTime;
+        this.endTime=o.endTime;
+        this.timeNeeded=o.timeNeeded;
+        this.timeUsed=0;
+        this.terminated=false;
+        this.index=o.index;
+    }
+
     public ProcessPCB(String line, int i) throws MatchException{
         String[] input=line.split(",");
         if(input.length>2){
@@ -29,6 +38,18 @@ public class ProcessPCB {
         this.timeUsed=0;
         this.terminated=false;
         this.index=i;
+    }
+    @Override
+    public boolean equals(Object p){
+        if(p instanceof  ProcessPCB){
+            ProcessPCB o=((ProcessPCB)p);
+            return (this.index==o.index);
+        }
+        return false;
+    }
+
+    public int hashCode(){
+        return Integer.hashCode(this.index);
     }
 
     public double getStartTime() {
@@ -59,8 +80,8 @@ public class ProcessPCB {
         return terminated;
     }
 
-    public void setTerminated(boolean terminated) {
-        this.terminated = terminated;
+    public void setTerminated() {
+        this.terminated = true;
     }
 
     public double getTimeUsed() {
