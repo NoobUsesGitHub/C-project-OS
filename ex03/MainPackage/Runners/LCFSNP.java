@@ -8,7 +8,15 @@ public class LCFSNP implements ProcessRunner{//non preemptive
     @Override
  public void runProcess(Collection<ProcessPCB> ar)
  {
-    
+     if (ar.size() == 1) {
+            ProcessPCB only = ar.iterator().next();
+            System.out.println("LCFS (NP): mean turnaround = " + only.getTimeNeeded());
+            return;
+        }
+        if (ar.isEmpty()) {
+            System.out.println("LCFS (NP): mean turnaround = 0");
+            return;
+        }
     Stack<ProcessPCB> s=new Stack<>();
     Object[] pr=ar.toArray();
     double globalTime=((ProcessPCB)(pr)[0]).getStartTime();

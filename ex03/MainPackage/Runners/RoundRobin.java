@@ -8,8 +8,16 @@ public class RoundRobin implements ProcessRunner{
 
     @Override
 public void runProcess(Collection<ProcessPCB> ar){
+     if (ar.size() == 1) {
+            ProcessPCB only = ar.iterator().next();
+            System.out.println("SJF (P): mean turnaround = " + only.getTimeNeeded());
+            return;
+        }
+        if (ar.isEmpty()) {
+            System.out.println("SJF (P): mean turnaround = 0");
+            return;
+        }
     ProcessPCB[] arr=ar.toArray(new ProcessPCB[0]);
-    
     int done=0;
     int i=0;
     double globalTime=arr[0].getStartTime();
