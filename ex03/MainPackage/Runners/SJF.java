@@ -15,6 +15,7 @@ public class SJF implements ProcessRunner {
             System.out.println("SJF (P): mean turnaround = " + only.getTimeNeeded());
             return;
         }
+        double tempTurnAround=0;
         if (ar.isEmpty()) {
             System.out.println("SJF (P): mean turnaround = 0");
             return;
@@ -79,7 +80,8 @@ public class SJF implements ProcessRunner {
                     globalTime = finishTime;
                     currentProcess.setEndTime(globalTime);
                     currentProcess.setTerminated();
-                    turnAroundResult += currentProcess.getTurnaroundTime();
+                    tempTurnAround=currentProcess.getTurnaroundTime();
+                    turnAroundResult += tempTurnAround;
                     currentProcess = null;
                 }
             } else {
@@ -96,7 +98,8 @@ public class SJF implements ProcessRunner {
             globalTime += (currentProcess.getTimeNeeded() - currentProcess.getTimeUsed());
             currentProcess.setEndTime(globalTime);
             currentProcess.setTerminated();
-            turnAroundResult += currentProcess.getTurnaroundTime();
+            tempTurnAround=currentProcess.getTurnaroundTime();
+            turnAroundResult += tempTurnAround;
             currentProcess = null;
         }
 
@@ -106,9 +109,14 @@ public class SJF implements ProcessRunner {
             globalTime = globalTime + currentProcess.getTimeNeeded() - currentProcess.getTimeUsed();//finish current
             currentProcess.setTerminated();
             currentProcess.setEndTime(globalTime);
-            turnAroundResult += currentProcess.getTurnaroundTime();
+            tempTurnAround=currentProcess.getTurnaroundTime();
+            turnAroundResult += tempTurnAround;
         }
 
+        for(ProcessPCB p : arr){
+            System.out.println("startTime"+p.getStartTime()+",turnaroundTime="+p.getTurnaroundTime()+",endTime="+p.getEndTime());
+            turnAroundResult += p.getTurnaroundTime();
+        }
         turnAroundResult = turnAroundResult / ar.size();
         System.out.println("SJF (P): mean turnaround = " + turnAroundResult);
     }
