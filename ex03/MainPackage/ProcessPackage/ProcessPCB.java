@@ -92,6 +92,9 @@ public class ProcessPCB {
         this.timeUsed = timeUsed;
     }
 
+    public double getTurnaroundTime(){
+        return this.endTime-this.startTime;
+    }
     
 
 }

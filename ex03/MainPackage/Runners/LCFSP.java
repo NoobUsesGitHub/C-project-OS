@@ -12,106 +12,91 @@ public class LCFSP implements ProcessRunner{//preemptive
     Stack<ProcessPCB> waiting=new Stack<>();
     Iterator<ProcessPCB> itP=ar.iterator();
     ProcessPCB current=itP.next();//the current running process
-    ProcessPCB nextP;//the current running process
+    ProcessPCB nextP=null;//the current running process
     double globalTime=current.getStartTime();
     double turnAroundResult=0;
-
-    while(itP.hasNext()){
-        nextP=itP.next();
+    int done=0;
+    if(ar.size()==1){
+        
+        System.out.println("LCFS (P): mean turnaround = "+current.getTimeNeeded());
+        return ;
+    }
+                nextP=itP.hasNext()?itP.next():null;
+    while(done<ar.size()&&nextP!=null){
         //global time?
-        if((current.getStartTime()+current.getTimeNeeded())>nextP.getStartTime())
+        globalTime=Math.max(globalTime,current.getStartTime());
+        if((globalTime+current.getTimeNeeded()-current.getTimeUsed())>nextP.getStartTime())
         {
-            current.setTimeUsed(current.getStartTime()+current.getTimeNeeded()-nextP.getStartTime());
+            current.setTimeUsed(nextP.getStartTime() - globalTime+current.getTimeUsed());
             waiting.add(current);
+            globalTime=nextP.getStartTime();
             current=nextP;
+
+                nextP=itP.hasNext()?itP.next():null;
             continue;
         }
+        if(!current.isTerminated()){
         //current doesnt have someone waiting for them for now
         current.setEndTime(globalTime+(current.getTimeNeeded()-current.getTimeUsed()));
-        turnAroundResult+=current.getEndTime()-current.getStartTime();
-        //run the waiting queue one after another
-        //run until time needed is 0
-        globalTime=current.getEndTime();   
-        current.setTerminated();     
-        
-        while(!waiting.empty()){
-            current=waiting.pop();
-            if((current.getStartTime()+current.getTimeNeeded())>nextP.getStartTime())
-            {
-                current.setTimeUsed(current.getStartTime()+current.getTimeNeeded()-nextP.getStartTime());
-                waiting.add(current);
-                current=nextP;
-                continue;
-            }
-                current.setEndTime(globalTime+(current.getTimeNeeded()-current.getTimeUsed()));
-            turnAroundResult+=current.getEndTime()-current.getStartTime();
-            //run the waiting queue one after another
-            //run until time needed is 0
-            globalTime=current.getEndTime();   
-            current.setTerminated();     
-        {
-        }
-    }
-
-    //the last process before we run the "waiting stack"
-
-    while(!waiting.empty()){
-        current=waiting.pop();
-        current.setEndTime(globalTime+current.getTimeNeeded()+current.getStartTime()+current.getTimeUsed());
-        turnAroundResult+=current.getEndTime()-current.getStartTime();
+        turnAroundResult+=current.getTurnaroundTime();
         //run the waiting queue one after another
         //run until time needed is 0
         globalTime=current.getEndTime();
         current.setTerminated();
+        done++;
+        current=nextP;
+
+                nextP=itP.hasNext()?itP.next():null;
+        }
+        while(!waiting.empty()){
+            if(nextP==null) break;
+            current=waiting.pop();
+            globalTime = Math.max(globalTime, current.getStartTime());
+            if((globalTime+current.getTimeNeeded()-current.getTimeUsed())>nextP.getStartTime()){
+                current.setTimeUsed(nextP.getStartTime() - globalTime+current.getTimeUsed());
+                waiting.add(current);
+globalTime=nextP.getStartTime();
+                current=nextP;
+                nextP=itP.hasNext()?itP.next():null;
+                break;
+            }
+            if(!current.isTerminated())
+            {current.setEndTime(globalTime+(current.getTimeNeeded()-current.getTimeUsed()));
+            turnAroundResult+=current.getTurnaroundTime();
+            //run the waiting queue one after another
+            //run until time needed is 0
+            globalTime=current.getEndTime();
+            current.setTerminated();
+            done++;
+            }
+        }
+    }
+    if(!current.isTerminated()){
+     current.setEndTime(globalTime+(current.getTimeNeeded()-current.getTimeUsed()));
+        turnAroundResult+=current.getTurnaroundTime();
+        //run the waiting queue one after another
+        //run until time needed is 0
+        globalTime=current.getEndTime();
+        current.setTerminated(); 
+        done++;
+    }
+    //the last process before we run the "waiting stack"
+
+    while(!waiting.empty()){
+        current=waiting.pop();
+        globalTime=Math.max(globalTime,current.getStartTime());
+        current.setEndTime(globalTime + (current.getTimeNeeded() - current.getTimeUsed()));
+        turnAroundResult+=current.getTurnaroundTime();
+        //run the waiting queue one after another
+        //run until time needed is 0
+        globalTime=current.getEndTime();
+        current.setTerminated();
+        done++;
     }
 
     turnAroundResult=turnAroundResult/ar.size();
     System.out.println("LCFS (P): mean turnaround = "+turnAroundResult);
 
-
-
-    // while(processLeft>0)
-    // {
-    //     putPerTime(s,globalTime,pr);
-    //     if(s.empty())
-    //     {
-    //         //timeskip needed
-    //         minimunNext=Double.MAX_VALUE;
-    //         for (Object ptemp: pr){
-    //             if(!((ProcessPCB)ptemp).isTerminated()&& ((ProcessPCB)ptemp).getStartTime()>=globalTime)
-    //             {
-    //                 minimunNext=Math.min(minimunNext,((ProcessPCB)ptemp).getStartTime());
-    //             }
-    //         }
-    //         if (minimunNext == Double.MAX_VALUE) break;//something went wrong
-    //         globalTime=minimunNext;
-    //         continue;
-    //     }
-    //     ProcessPCB p=s.pop();
-    //     if(p.isTerminated()){//an old process that has been terminated already
-    //         continue;
-    //     }
-    //     globalTime=Math.max(globalTime,p.getStartTime());//it's the first in the stack, therefore it will run now and will be the max time
-    //     p.setEndTime(globalTime+p.getTimeNeeded());
-    //     turnAroundResult+=p.getEndTime()-p.getStartTime();
-    //     globalTime=p.getEndTime();
-    //     p.setTerminated();
-    //     processLeft--;
-    // }
-    // turnAroundResult=turnAroundResult/ar.size();
-    // System.out.println("LCFS: mean turnaround = "+turnAroundResult);
  }
  
-
- //input: stack, global time and an array of proceess
- //will fill the stack with processess that have arrived since the time recieved (only those that aren't terminated already)
- private void putPerTime(Stack<ProcessPCB> s, double time, Object[] processes){
-    for(int i=0;i<processes.length;i++){
-        if(!(s.contains(((ProcessPCB)processes[i])))&&!(((ProcessPCB)processes[i]).isTerminated())&&(((ProcessPCB)processes[i]).getStartTime()<=time))
-        {
-            s.add(((ProcessPCB)processes[i]));
-        }
-    }
  }
-}
-

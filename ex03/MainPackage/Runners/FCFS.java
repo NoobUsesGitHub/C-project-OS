@@ -15,7 +15,7 @@ public class FCFS implements ProcessRunner{
             //fix
             globalTime=Math.max(globalTime,p.getStartTime());
             p.setEndTime(globalTime+p.getTimeNeeded());
-            turnAroundResult+=p.getEndTime()-p.getStartTime();
+            turnAroundResult+=p.getTurnaroundTime();
             globalTime=p.getEndTime();
         }
         turnAroundResult=turnAroundResult/ar.size();

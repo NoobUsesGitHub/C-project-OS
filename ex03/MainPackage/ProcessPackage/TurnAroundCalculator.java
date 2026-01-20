@@ -7,18 +7,8 @@ import java.util.Collection;
 
 public class TurnAroundCalculator {
 
-//sjf Looks at total, not what's left
-//time enter->index (priority)
 //idle times are a thing too
 //times might be zero
-
-//run circles for RR: for(i=0 to infinite): i=(i+1)%number of processes up til now
-
-
-//Round robin needs to give back range??
-//if process ended early, other process needs to run before it (used 1 second? other process is 1 second early)
-//create global clock that is updated in a loop maybe?
-
 
     private static void deepCopy(Collection<ProcessPCB> org,Collection<ProcessPCB> dest){
         for(ProcessPCB a: org){
@@ -41,10 +31,18 @@ public class TurnAroundCalculator {
         ArrayList<ProcessPCB> inputToRunners=new ArrayList<ProcessPCB>();
         deepCopy(cp,inputToRunners);
         new FCFS().runProcess(inputToRunners);
+        inputToRunners=new ArrayList<ProcessPCB>();
         deepCopy(cp,inputToRunners);
         new LCFSNP().runProcess(inputToRunners);
+        inputToRunners=new ArrayList<ProcessPCB>();
         deepCopy(cp,inputToRunners);
         new LCFSP().runProcess(inputToRunners);
+       inputToRunners=new ArrayList<ProcessPCB>();
+        deepCopy(cp,inputToRunners);
+        new RoundRobin().runProcess(inputToRunners);
+        inputToRunners=new ArrayList<ProcessPCB>();
+        deepCopy(cp,inputToRunners);
+        new SJF().runProcess(inputToRunners);
         
     }
     //     try(Scanner s=new Scanner(f)){
