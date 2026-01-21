@@ -1,4 +1,4 @@
-// Names: Oz Ben Moshe, David Norman, IDs: TODO, 206395592
+// Names: Oz Ben Moshe, David Norman, IDs: 208639906, 206395592
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/random.h>
 #include <string.h>
+#include <ctype.h>
 
 // buffer sizes
 #define BUFFER_SIZE 128
@@ -26,6 +27,7 @@ void handle_server_response(int sig) {
 
 // throw an error if reached timeout
 void handle_timeout(int sig) {
+    printf("Has responded is: %d\n", has_responded);
     if (!has_responded) {
         printf("Client closed because no response was received from the server for 30 seconds\n");
         exit(0);
@@ -34,10 +36,30 @@ void handle_timeout(int sig) {
 
 
 int main(int argc, char *argv[]) {
+    // the instructions said to add a sleep to each client
+    unsigned int random_num;
+    // if random generation fails
+    if (getrandom(&random_num, sizeof(random_num), 0) < 0) {
+        printf("ERROR_FROM_EX2\n");
+        exit(1);
+    }
+    // sleep for a random number of seconds - use random_num with modulu 5 + 1. If we were to use muludu 6 as suggested in the instructions, we would have a chance for 0 seconds waiting time
+    sleep((random_num % 5) + 1);
+
     // verifies arguments
     if (argc != 5) {
         printf("ERROR_FROM_EX2\n");
         exit(1);
+    }
+
+    // verify that all the input is numeric
+    for (int i = 1; i < argc; i++) {
+        for (int j = 0; j < strlen(argv[i]); j++) {
+            if (!isdigit((argv[i])[j])) {
+                printf("ERROR_FROM_EX2\n");
+                exit(1);
+            }
+        }
     }
 
     int srv_pid = atoi(argv[1]); // ascii to integer
@@ -51,22 +73,22 @@ int main(int argc, char *argv[]) {
         // after ten attempts - stop
         if (attempts >= 10) {
             printf("ERROR_FROM_EX2\n");
+            // nothing to close - no file was opened yet
             exit(1);
         }
         // generate a random number
-        unsigned int random_num;
         // if random generation fails
         if (getrandom(&random_num, sizeof(random_num), 0) < 0) {
             printf("ERROR_FROM_EX2\n");
             exit(1);
         }
-        // sleep for a random number of seconds - use random_num with modulu 5 + 1. If we were to use muludu 6 as suggested in the instructions, we would have a change for 0 seconds waiting time
+        // sleep for a random number of seconds - use random_num with modulu 5 + 1. If we were to use muludu 6 as suggested in the instructions, we would have a chance for 0 seconds waiting time
         sleep((random_num % 5) + 1);
     }
 
     // get input and write it to a file
     char buffer[BUFFER_SIZE];
-    sprintf(buffer, "%d %s %s %s", getpid(), argv[2], argv[3], argv[4]);
+    sprintf(buffer, "%d %d %d %d", getpid(), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
     write(fd, buffer, strlen(buffer));
     close(fd);
     printf("end of stage 5d\n");
@@ -111,6 +133,9 @@ int main(int argc, char *argv[]) {
         close(fd_res);
         unlink(client_file);
         printf("end of stage 5j\n");
+
+        // step k is a comment, but let's print it as well
+        printf("end of stage 5k\n");
     }
 
     return 0;
