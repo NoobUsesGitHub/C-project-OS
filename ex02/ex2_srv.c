@@ -1,4 +1,4 @@
-// Names: Oz Ben Moshe, David Norman, IDs: TODO, 206395592
+// Names: Oz Ben Moshe, David Norman, IDs: 208639906, 206395592
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -42,7 +42,7 @@ void handle_client(int sig) {
         }
         int client_pid, frst_num, scnd_num, opr;
         char server_buffer[SRV_BFR];
-        // read file, and also count the amount of bytes read and verify that nothing is wrong
+        // read file, and also count the amount of bytes read and verify that nothing is invalid
         int bytes_read = read(fd_server, server_buffer, sizeof(server_buffer) - 1);
         if (bytes_read > 0)
             server_buffer[bytes_read] = '\0'; // terminate the string since there's a problem
@@ -98,7 +98,10 @@ void handle_client(int sig) {
 
         // write the result to the file
         int fd_client = open(client_file, O_WRONLY | O_CREAT | O_TRUNC, CLIENT_FILE_PERMISSION);
-        if (fd_client < 0) { printf("ERROR_FROM_EX2\n"); exit(1); }
+        if (fd_client < 0) {
+            printf("ERROR_FROM_EX2\n");
+            exit(1);
+        }
         
         // write to file
         sprintf(server_buffer, "%d", result);
@@ -118,6 +121,10 @@ void timeout_handler(int sig) {
 }
 
 int main() {
+    // printing the following steps, even though there is nothing to execute for them
+    printf("end of stage 5a\n");
+    printf("end of stage 5b\n");
+
     // in case we have "leftovers" from a previous run
     unlink("to_srv");
     printf("end of stage 5c\n");
@@ -136,7 +143,7 @@ int main() {
 
     // to prevent zombies
     struct sigaction sa_child;
-    sa_child.sa_handler = SIG_IGN; // ignore children so they won't be stuck on a way loop
+    sa_child.sa_handler = SIG_IGN; // ignore children so they won't be stuck on a loop
     sigemptyset(&sa_child.sa_mask); // to not block other signals
     sa_child.sa_flags = SA_NOCLDWAIT; // don't wait for children
     sigaction(SIGCHLD, &sa_child, NULL);
