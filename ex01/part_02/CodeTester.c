@@ -191,6 +191,10 @@ int main(int argc,char *argv[]) {
     }
     
     fclose(folderFile);
+    unlink("./folderNames.text");
+    unlink("./main.exe");
+    unlink("./programOutput.txt");
+
     fclose(gradeOutputFile);
     exit(0);
 }
