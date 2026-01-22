@@ -41,7 +41,7 @@ public class LCFSP implements ProcessRunner {//preemptive
         Stack<ProcessPCB> ready = new Stack<>();
 
         double globalTime = 0.0;
-        double sumTurnaround = 0.0;
+        double turnAroundResult = 0.0;
 
         int i = 0;                 // pointer to next process that hasn't "arrived" into the system yet
         int n = procs.size();
@@ -81,7 +81,7 @@ public class LCFSP implements ProcessRunner {//preemptive
                 current.setEndTime(globalTime);
                 current.setTerminated();
 
-                sumTurnaround += current.getTurnaroundTime();
+                turnAroundResult += current.getTurnaroundTime();
                 current = null; // CPU becomes free
                 continue;
             }
@@ -96,7 +96,7 @@ public class LCFSP implements ProcessRunner {//preemptive
             current = null; // will pick the newest arrival next loop iteration
         }
 
-        double meanTurnaround = sumTurnaround / n;
-        System.out.println("LCFS (P): mean turnaround = " + meanTurnaround);
+        turnAroundResult= turnAroundResult / n;
+        System.out.println("LCFS (P): mean turnaround = " + turnAroundResult);
     }
 }
