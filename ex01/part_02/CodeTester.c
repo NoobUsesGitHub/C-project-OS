@@ -1,3 +1,5 @@
+// Names: Oz Ben Moshe, David Norman, IDs: 208639906, 206395592
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
