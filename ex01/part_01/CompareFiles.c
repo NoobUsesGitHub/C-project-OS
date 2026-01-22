@@ -61,18 +61,21 @@ int main(int argc, char *argv[]) {
         exit(ERROR);
     }
     int exit_code = compare_files(argv[1], argv[2]);
-    switch (exit_code) {
-        case FILES_IDENTICAL: {
-            printf("The two files are identical ^_^\n");
-            break;
-        }
-        case FILES_NOT_IDENTICAL: {
-            printf("The two files are not identical x_x\n");
-            break;
-        }
-        default:
-            printf("An error did occur and the comparison was not checked 0_0\n");
-    }
+
+    // if we'd want output for results
+
+    // switch (exit_code) {
+    //     case FILES_IDENTICAL: {
+    //         printf("The two files are identical ^_^\n");
+    //         break;
+    //     }
+    //     case FILES_NOT_IDENTICAL: {
+    //         printf("The two files are not identical x_x\n");
+    //         break;
+    //     }
+    //     default:
+    //         printf("An error did occur and the comparison was not checked 0_0\n");
+    // }
     if (exit_code == ERROR) {
         return FILES_NOT_IDENTICAL;
     }

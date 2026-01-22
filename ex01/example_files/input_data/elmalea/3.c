@@ -6,6 +6,6 @@ int main(int argc, char* argv[]){
 	printf("please enter scond number:\n");
 	scanf("%d", &b);	
 	printf("the sum is:\n");
-	printf("%d", a-b);
+	printf("%d", a+b);
 	return 0;
 }
