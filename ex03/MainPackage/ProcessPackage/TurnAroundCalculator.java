@@ -18,7 +18,6 @@ public class TurnAroundCalculator {
     }
 
     public static void main(String[] args) {
-        args = new String[]{"C:\\Users\\Ozbm1\\projects\\OS\\C-project-OS\\ex03\\example_files\\input1.txt"};
         File f = new File(args[0]);
         int numberOfProcs = -1;
         ArrayList<ProcessPCB> cp = new ArrayList<ProcessPCB>();

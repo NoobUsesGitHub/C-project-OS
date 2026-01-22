@@ -23,11 +23,11 @@ public class SJF implements ProcessRunner {
         double globalTime = 0;
         double turnAroundResult = 0;
         ArrayList<ProcessPCB> arr = new ArrayList<>(ar);
-        Comparator<ProcessPCB> sjfTotalCmp
-                = Comparator.comparingDouble(ProcessPCB::getTimeNeeded)
+        Comparator<ProcessPCB> sjfCmp
+                = Comparator.comparingDouble(ProcessPCB::getTimeLeft) // total time needed
                         .thenComparingDouble(ProcessPCB::getStartTime) // arrival
                         .thenComparingInt(ProcessPCB::getIndex);
-        PriorityQueue<ProcessPCB> readyQueue = new PriorityQueue<>(sjfTotalCmp);
+        PriorityQueue<ProcessPCB> readyQueue = new PriorityQueue<>(sjfCmp);
         ProcessPCB currentProcess = null;
         int current = 0, readyable = -1;
         while (current < arr.size()) {
@@ -113,10 +113,6 @@ public class SJF implements ProcessRunner {
             turnAroundResult += tempTurnAround;
         }
 
-        for(ProcessPCB p : arr){
-            System.out.println("startTime"+p.getStartTime()+",turnaroundTime="+p.getTurnaroundTime()+",endTime="+p.getEndTime());
-            turnAroundResult += p.getTurnaroundTime();
-        }
         turnAroundResult = turnAroundResult / ar.size();
         System.out.println("SJF (P): mean turnaround = " + turnAroundResult);
     }

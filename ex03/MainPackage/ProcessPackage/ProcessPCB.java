@@ -96,5 +96,8 @@ public class ProcessPCB {
         return this.endTime-this.startTime;
     }
     
+    public double getTimeLeft(){
+        return this.timeNeeded - this.timeUsed;
+    }
 
 }

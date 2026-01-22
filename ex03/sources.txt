@@ -1,0 +1,10 @@
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Comparators\AscCompare.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Comparators\DescCompare.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\ProcessPackage\ProcessPCB.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\ProcessPackage\TurnAroundCalculator.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Runners\FCFS.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Runners\LCFSNP.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Runners\LCFSP.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Runners\ProcessRunner.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Runners\RoundRobin.java
+C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\MainPackage\Runners\SJF.java
