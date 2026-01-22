@@ -3,14 +3,19 @@ package MainPackage.ProcessPackage;
 import MainPackage.Comparators.AscCompare;
 import MainPackage.Runners.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Scanner;
 
 public class TurnAroundCalculator {
 
-//idle times are a thing too
-//times might be zero
+    /**
+     * Creates a "fresh" list of processes for each scheduling run. We use the
+     * ProcessPCB copy constructor so each runner starts from a clean state
+     * (timeUsed reset, terminated reset, etc. as defined in
+     * ProcessPCB(ProcessPCB)).
+     */
     private static void deepCopy(Collection<ProcessPCB> org, Collection<ProcessPCB> dest) {
         for (ProcessPCB a : org) {
             dest.add(new ProcessPCB(a));
@@ -18,9 +23,21 @@ public class TurnAroundCalculator {
     }
 
     public static void main(String[] args) {
+        //arg[0] = input file path (C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\example_files\input1.txt)
+        if (args == null || args.length == 0) {
+            System.out.println("error in TurnAroundCalculator <input_file_path>");
+            return;
+        }
         File f = new File(args[0]);
+
+        // --- Basic file validation ---
+        if (!f.exists() || !f.isFile()) {
+            System.out.println("File not found or not a regular file: " + f.getPath());
+            return;
+        }
+
         int numberOfProcs = -1;
-        ArrayList<ProcessPCB> cp = new ArrayList<ProcessPCB>();
+        ArrayList<ProcessPCB> processes = new ArrayList<>();
 
         try (Scanner s = new Scanner(f)) {
             /*
@@ -33,10 +50,13 @@ public class TurnAroundCalculator {
                  procnStartTime,procnNeededTime
                  IMPORTANT NOTE oreder of arrival!= order of running (unless start time is equals!)
              */
-            if (s.hasNext())//not empty file then
-            {
-                numberOfProcs = s.nextInt();
+            if (!s.hasNextInt()) {
+                System.out.println("Invalid file format: first token must be an integer (number of processes).");
+                return;
             }
+            numberOfProcs = s.nextInt();
+            s.nextLine(); // consume the rest of the first line after the integer
+
             if (numberOfProcs <= 0) {
                 System.out.println("File empty or number of processess = 0");
                 return;
@@ -44,32 +64,56 @@ public class TurnAroundCalculator {
 
             String line;
             int i = 0;
-            line = s.nextLine();//consume the rest of the first line
-            while (s.hasNextLine() && i < numberOfProcs) {
-                line = s.nextLine();
-                System.out.println(line);
+            while (s.hasNextLine() && processes.size() < numberOfProcs) {
+                line = s.nextLine().trim();
+
+                // Skip blank lines safely (does not count as a process)
+                if (line.isEmpty()) {
+                    continue;
+                }
+
                 try {
-                    ProcessPCB p = new ProcessPCB(line, i);
-                    cp.add(p);
-                    i++;
+                    // index/id is assigned by insertion order (0..n-1)
+                    ProcessPCB p = new ProcessPCB(line, processes.size());
+                    processes.add(p);
                 } catch (MatchException e) {
-                    s.close();
+                    System.out.println("Bad process line: '" + line + "'");
                     e.printStackTrace();
                     return;
                 }
             }
+
+            // If the file promised N processes but provided fewer usable lines, warn.
+            if (processes.size() < numberOfProcs) {
+                System.out.println("Warning: expected " + numberOfProcs + " processes, but read only " + processes.size());
+            }
+
+        } catch (FileNotFoundException e) {
+            // Should be rare since we already checked exists(), but still good practice
+            System.out.println("File not found: " + f.getPath());
+            e.printStackTrace();
+            return;
         } catch (Exception e) {
-            System.out.println("Error Occured");
+            System.out.println("Error occurred while reading input.");
             e.printStackTrace();
             return;
         }
-        cp.sort(new AscCompare());
-        ProcessRunner[] pr = {new FCFS(), new LCFSNP(), new LCFSP(), new RoundRobin(), new SJF()};
-        ArrayList<ProcessPCB> inputToRunners = new ArrayList<ProcessPCB>();
-        for (ProcessRunner r : pr) {
-            deepCopy(cp, inputToRunners);
-            r.runProcess(inputToRunners);
-            inputToRunners = new ArrayList<>();
+
+        processes.sort(new AscCompare()); 
+        // List of scheduling algorithms to run
+        ProcessRunner[] runners = {
+            new FCFS(),
+            new LCFSNP(),
+            new LCFSP(),
+            new RoundRobin(),
+            new SJF()
+        };
+        
+         // Run all algorithms on identical fresh copies of the same input
+        for (ProcessRunner runner : runners) {
+            ArrayList<ProcessPCB> inputToRunner = new ArrayList<>(processes.size());
+            deepCopy(processes, inputToRunner);
+            runner.runProcess(inputToRunner);
         }
     }
 }

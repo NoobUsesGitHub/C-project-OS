@@ -3,23 +3,17 @@ package  MainPackage.Comparators;
 import MainPackage.ProcessPackage.ProcessPCB;
 import java.util.Comparator;
 
-public class AscCompare implements  Comparator<ProcessPCB>{//will be used for FCFS
+public class AscCompare implements  Comparator<ProcessPCB>{//will be used for sorting by start time in ascending order then by index
 
     @Override
     public int compare(ProcessPCB o1, ProcessPCB o2) {
-        if(o1.getStartTime()>o2.getStartTime()){
-            return 1;
+        int byStart = Double.compare(o1.getStartTime(), o2.getStartTime());
+        if (byStart != 0) {
+            return byStart;
         }
-        if(o1.getStartTime()<o2.getStartTime()){
-            return -1;
-        }
-        if(o1.getStartTime()==o2.getStartTime())
-            if(o1.getIndex()>o2.getIndex()){
-                return 1;
-            }else if(o1.getIndex()<o2.getIndex()){
-                return -1;
-            }
-        return 0;
+
+        // Tie-breaker: smaller index first
+        return Integer.compare(o1.getIndex(), o2.getIndex());
         
     }
     

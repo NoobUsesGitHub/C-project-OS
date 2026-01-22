@@ -4,22 +4,39 @@ import MainPackage.ProcessPackage.ProcessPCB;
 import java.util.Collection;
 
 public class FCFS implements ProcessRunner{
+    
+    /**
+     * First-Come First-Served (non-preemptive):
+     * - Processes are executed in order of arrival time (startTime).
+     * - If the CPU becomes idle (no process has arrived yet), globalTime jumps forward
+     *   to the next process's startTime.
+     *
+     * Assumption: 'ar' is already sorted by (startTime, index) using AscCompare.
+     */
     @Override
-    //runs the processes on each process (after sorting them on run time)
-    //calculates turnaround for every process
     public void runProcess(Collection<ProcessPCB> ar){
-        double globalTime=0;
-        double turnAroundResult=0;
+        // Edge case: no processes -> mean turnaround is 0 (or you can print a message)
+        if (ar == null || ar.isEmpty()) {
+            System.out.println("FCFS: mean turnaround = 0");
+            return;
+        }
+        double globalTime=0.0;
+        double turnAroundResult=0.0;
         for(ProcessPCB p:ar)//zero times and delays don't matter here
         {
-            //fix
-            globalTime=Math.max(globalTime,p.getStartTime());
-            p.setEndTime(globalTime+p.getTimeNeeded());
-            turnAroundResult+=p.getTurnaroundTime();
-            globalTime=p.getEndTime();
+             // If CPU is idle until this process arrives, jump time forward to arrival.
+            globalTime = Math.max(globalTime, p.getStartTime());
+
+            // In FCFS, once we start the process, it runs to completion.
+            p.setEndTime(globalTime + p.getTimeNeeded());
+
+            // Turnaround = end - start (arrival)
+            turnAroundResult += p.getTurnaroundTime();
+
+            // Advance global time to the completion of this process.
+            globalTime = p.getEndTime();
         }
-        turnAroundResult=turnAroundResult/ar.size();
-        System.out.println("FCFS: mean turnaround = "+turnAroundResult);
+        System.out.println("FCFS: mean turnaround = "+turnAroundResult/ar.size());
     }
 }
 

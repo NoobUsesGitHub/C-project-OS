@@ -3,61 +3,96 @@ package MainPackage.Runners;
 import MainPackage.ProcessPackage.ProcessPCB;
 import java.util.Collection;
 
-public class RoundRobin implements ProcessRunner{
-    private double timeQuantom=2;
+public class RoundRobin implements ProcessRunner {
+    // Time quantum for Round Robin (can be changed if needed)
 
+    private final double timeQuantum = 2.0;
+
+    /**
+     * Round Robin (RR):
+     * the head for min(quantum, remaining time). - If it still has time left,
+     * push it back to the tail. - If no process is ready, jump time to the next
+     * arrival (CPU idle).
+     */
     @Override
-public void runProcess(Collection<ProcessPCB> ar){
-     if (ar.size() == 1) {
+    public void runProcess(Collection<ProcessPCB> ar) {
+        if (ar == null || ar.isEmpty()) {
+            System.out.println("RR: mean turnaround = 0");
+            return;
+        }
+        if (ar.size() == 1) {
             ProcessPCB only = ar.iterator().next();
-            System.out.println("SJF (P): mean turnaround = " + only.getTimeNeeded());
+            System.out.println("RR: mean turnaround = " + only.getTimeNeeded());
             return;
         }
-        if (ar.isEmpty()) {
-            System.out.println("SJF (P): mean turnaround = 0");
-            return;
-        }
-    ProcessPCB[] arr=ar.toArray(new ProcessPCB[0]);
-    int done=0;
-    int i=0;
-    double globalTime=arr[0].getStartTime();
-    double turnAroundResult=0;
-    while(done<ar.size()){
-        if(!arr[i].isTerminated()){
-            if(arr[i].getTimeNeeded()-timeQuantom>=0){//runs for time quantom and has extra
-                globalTime+=timeQuantom;
-                arr[i].setTimeNeeded(arr[i].getTimeNeeded()-timeQuantom);
-                arr[i].setTimeUsed(arr[i].getTimeUsed()+timeQuantom);
-                if(arr[i].getTimeNeeded()==0){
-                    arr[i].setTerminated();
-                    arr[i].setEndTime(globalTime);
-                    turnAroundResult+=arr[i].getTurnaroundTime();
-                    done++;
+        ProcessPCB[] procs = ar.toArray(new ProcessPCB[0]);
+        int done = 0;
+        int i = 0;
+        int size=ar.size();
+        double globalTime = procs[0].getStartTime();
+        double turnAroundResult = 0;
+
+        
+        while (done < ar.size()) {
+              // If this process hasn't arrived yet or is already terminated -> just skip it
+            if (procs[i].isTerminated() || procs[i].getStartTime() > globalTime) {
+                // If we're about to loop and nobody is ready, we need to time-skip to the next arrival
+                if (!anyReady(procs, globalTime)) {
+                    globalTime = nextArrivalTime(procs, globalTime);
                 }
-            }else{//we finish before the time quantom needed
-                double remaining= timeQuantom- arr[i].getTimeNeeded();
-                globalTime+=remaining;
-                arr[i].setTimeNeeded(arr[i].getTimeNeeded()-remaining);
-                arr[i].setTimeUsed(arr[i].getTimeUsed()+remaining);
-                arr[i].setTerminated();
-                arr[i].setEndTime(globalTime);
-                turnAroundResult+=arr[i].getTurnaroundTime();
+                i = (i + 1) % size;
+                continue;
+            }
+
+            double remaining = procs[i].getTimeLeft();
+            double runFor = Math.min(this.timeQuantum, remaining); //might not need full quantum
+            globalTime += runFor;
+            procs[i].setTimeUsed(procs[i].getTimeUsed() + runFor);
+             // If finished now, mark endTime + terminated and accumulate turnaround
+            if (procs[i].getTimeLeft() <= 0) {
+                procs[i].setTerminated();
+                procs[i].setEndTime(globalTime);
+                turnAroundResult += procs[i].getTurnaroundTime();
                 done++;
             }
-            if(arr[(i+1)%ar.size()].getStartTime()>globalTime){
-                //we stay in place, nobody is arriving for the next time quantom
-                if(arr[i].isTerminated())//time skip
-                {
-                    globalTime=Math.max(globalTime,arr[(i+1)%ar.size()].getStartTime());
-                }else{
-                    i=i-1;
-                }
+
+            
+            // If after this slice no process is ready at current time, time-skip forward.
+            if (!anyReady(procs, globalTime) && done < size) {
+                globalTime = nextArrivalTime(procs, globalTime);
+            }
+            i = (i + 1) % size;
+        }
+        turnAroundResult = turnAroundResult / procs.length;
+        System.out.println("RR: mean turnaround = " + turnAroundResult);
+    }
+
+
+    
+    /**
+     * @return true if at least one process is arrived (startTime <= time) and not terminated
+     */
+    private boolean anyReady(ProcessPCB[] procs, double time) {
+        for (ProcessPCB p : procs) {
+            if (!p.isTerminated() && p.getStartTime() <= time) {
+                return true;
             }
         }
-        i=(i+1)%ar.size();
+        return false;
     }
+
     
-    turnAroundResult=turnAroundResult/arr.length;
-    System.out.println("RR: mean turnaround = "+turnAroundResult);
-}
+    /**
+     * Finds the next startTime strictly after 'time' among non-terminated processes.
+     * If none exist, returns the same time (should not happen if done < n).
+     */
+    private double nextArrivalTime(ProcessPCB[] procs, double time) {
+        double next = Double.POSITIVE_INFINITY;
+        for (ProcessPCB p : procs) {
+            if (!p.isTerminated() && p.getStartTime() > time) {
+                next = Math.min(next, p.getStartTime());
+            }
+        }
+        return (next == Double.POSITIVE_INFINITY) ? time : next;
+    }
 }
