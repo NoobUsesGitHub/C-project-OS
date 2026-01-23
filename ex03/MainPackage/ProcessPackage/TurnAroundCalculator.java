@@ -25,7 +25,8 @@ public class TurnAroundCalculator {
     }
 
     public static void main(String[] args) {
-        //arg[0] = input file path (C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\example_files\input1.txt)
+        //arg[0] = "input file path ("C:\Users\Ozbm1\projects\OS\C-project-OS\ex03\example_files\input1.txt
+
         if (args == null || args.length == 0) {
             System.out.println("error in TurnAroundCalculator <input_file_path>");
             return;

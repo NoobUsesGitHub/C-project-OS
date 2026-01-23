@@ -27,10 +27,6 @@ public class SJF implements ProcessRunner {
             System.out.println("SJF (P): mean turnaround = " + only.getTimeNeeded());
             return;
         }
-        if (ar.isEmpty()) {
-            System.out.println("SJF (P): mean turnaround = 0");
-            return;
-        }
 
 
         ArrayList<ProcessPCB> procs = new ArrayList<>(ar);

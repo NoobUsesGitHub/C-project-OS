@@ -54,7 +54,7 @@ public class LCFSP implements ProcessRunner {//preemptive
             }
 
             // Push all processes that have arrived by globalTime into the stack.
-            // Important: pushing in sorted order means the "latest" arrival ends up on top.
+            // pushing in sorted order means the "latest" arrival ends up on top.
             while (i < n && procs.get(i).getStartTime() <= globalTime) {
                 ready.push(procs.get(i));
                 i++;

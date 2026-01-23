@@ -11,10 +11,8 @@ public class RoundRobin implements ProcessRunner {
     private final double timeQuantum = 2.0;
 
     /**
-     * Round Robin (RR):
-     * the head for min(quantum, remaining time). - If it still has time left,
-     * push it back to the tail. - If no process is ready, jump time to the next
-     * arrival (CPU idle).
+     * Round Robin (RR): run the head for min(quantum, remaining time). 
+     * skip to  the next one - If no process is ready, run for until the next arrival (CPU idle).
      */
     @Override
     public void runProcess(Collection<ProcessPCB> ar) {
@@ -30,13 +28,12 @@ public class RoundRobin implements ProcessRunner {
         ProcessPCB[] procs = ar.toArray(new ProcessPCB[0]);
         int done = 0;
         int i = 0;
-        int size=ar.size();
+        int size = procs.length;
         double globalTime = procs[0].getStartTime();
         double turnAroundResult = 0;
 
-        
         while (done < ar.size()) {
-              // If this process hasn't arrived yet or is already terminated -> just skip it
+            // If this process hasn't arrived yet or is already terminated -> just skip it
             if (procs[i].isTerminated() || procs[i].getStartTime() > globalTime) {
                 // If we're about to loop and nobody is ready, we need to time-skip to the next arrival
                 if (!anyReady(procs, globalTime)) {
@@ -47,10 +44,24 @@ public class RoundRobin implements ProcessRunner {
             }
 
             double remaining = procs[i].getTimeLeft();
-            double runFor = Math.min(this.timeQuantum, remaining); //might not need full quantum
+            double runFor;
+            double nextArr = nextArrivalTime(procs, globalTime);
+            //check if process i can run for full run (due to no other ready processes)
+            if (onlyThisReady(procs, i, globalTime)) {
+                // fast-forward: no one else can take CPU until next arrival
+                double untilNext = nextArr > globalTime ? (nextArr - globalTime) : Double.POSITIVE_INFINITY;
+                if(untilNext <= this.timeQuantum) {
+                    untilNext = this.timeQuantum;
+                }
+                runFor = Math.min(remaining, untilNext);
+            } else {
+                // normal RR slice
+                runFor = Math.min(timeQuantum, remaining);
+            }
+
             globalTime += runFor;
             procs[i].setTimeUsed(procs[i].getTimeUsed() + runFor);
-             // If finished now, mark endTime + terminated and accumulate turnaround
+            // If finished now, mark endTime + terminated and accumulate turnaround
             if (procs[i].getTimeLeft() <= 0) {
                 procs[i].setTerminated();
                 procs[i].setEndTime(globalTime);
@@ -58,7 +69,6 @@ public class RoundRobin implements ProcessRunner {
                 done++;
             }
 
-            
             // If after this slice no process is ready at current time, time-skip forward.
             if (!anyReady(procs, globalTime) && done < size) {
                 globalTime = nextArrivalTime(procs, globalTime);
@@ -69,10 +79,9 @@ public class RoundRobin implements ProcessRunner {
         System.out.println("RR: mean turnaround = " + turnAroundResult);
     }
 
-
-    
     /**
-     * @return true if at least one process is arrived (startTime <= time) and not terminated
+     * @return true if at least one process is arrived (startTime <= time) and
+     * not terminated
      */
     private boolean anyReady(ProcessPCB[] procs, double time) {
         for (ProcessPCB p : procs) {
@@ -83,10 +92,26 @@ public class RoundRobin implements ProcessRunner {
         return false;
     }
 
-    
     /**
-     * Finds the next startTime strictly after 'time' among non-terminated processes.
-     * If none exist, returns the same time (should not happen if done < n).
+     * @return true if only the process at index idx is ready (startTime <=
+     * time) and not terminated
+     */
+    private boolean onlyThisReady(ProcessPCB[] procs, int idx, double time) {
+        for (int k = 0; k < procs.length; k++) {
+            if (k == idx) {
+                continue;
+            }
+            if (!procs[k].isTerminated() && procs[k].getStartTime() <= time) {
+                return false; // someone else is ready too
+            }
+        }
+        return !procs[idx].isTerminated() && procs[idx].getStartTime() <= time;
+    }
+
+    /**
+     * Finds the next startTime strictly after 'time' among non-terminated
+     * processes. If none exist, returns the same time (should not happen if
+     * done < n).
      */
     private double nextArrivalTime(ProcessPCB[] procs, double time) {
         double next = Double.POSITIVE_INFINITY;
